@@ -1,0 +1,49 @@
+{-# LANGUAGE TemplateHaskell #-}
+
+module Helio.Command
+ (
+ )
+where
+
+import Helio.Common
+import Control.Lens
+
+newtype CmdMod = CmdMod (CommandInfo -> CommandInfo)
+
+
+instance Semigroup CmdMod where
+  (CmdMod f) <> (CmdMod g) = CmdMod (f . g)
+  
+
+defaultCommand :: String -> CommandInfo
+defaultCommand n = CommandInfo
+  { _ownerOnly = False
+  , _commandArgs = []
+  , _name = n
+  , _description = Nothing
+  , _neededRoles = []
+  , _neededPermissions = [] }
+
+withOwnerOnly :: CmdMod
+withOwnerOnly = CmdMod (ownerOnly .~ True)
+
+withDesc :: String -> CmdMod
+withDesc desc = CmdMod (description ?~ desc)
+
+withArgs :: [ArgType] -> CmdMod
+withArgs args = CmdMod (commandArgs %~ (++ args))
+
+withHooks :: [Hook] -> CmdMod
+withHooks h = Cmd (hooks %~ (++ h))
+
+withName :: String -> CmdMod
+withName n = CmdMod (name .~ n)
+
+withNeededRoles :: [String] -> CmdMod
+withNeededRoles roles = CmdMod (neededRoles %~ (++ roles))
+
+withNeededPermissions :: [String] -> CmdMod
+withNeededPermissions perms = CmdMod (neededPermissions %~ (++ perms))
+
+mkCommand :: String -> CmdMod -> Handler -> Command
+mkCommand n (CmdMod f) handler = Command 

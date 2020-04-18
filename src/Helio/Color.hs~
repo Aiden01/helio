@@ -1,0 +1,5 @@
+module Helio.Color
+  ( Color(..)
+  )
+
+data Color = Color Int Int Int
